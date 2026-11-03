@@ -242,7 +242,9 @@ class MailruClient:
 
         letters: list[Letter] = []
         for uid in uids:
-            status, raw = imap.uid("FETCH", uid, "(RFC822)")
+            # BODY.PEEK, а не RFC822: прочитать письмо, не ставя флаг \Seen —
+            # ящик не должен «прочитываться» от того, что агент его просмотрел.
+            status, raw = imap.uid("FETCH", uid, "(BODY.PEEK[])")
             if status != "OK" or not raw or not isinstance(raw[0], tuple):
                 continue
             message = email.message_from_bytes(raw[0][1])

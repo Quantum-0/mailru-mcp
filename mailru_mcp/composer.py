@@ -25,9 +25,17 @@ def extract_address(value: str) -> str:
     return parseaddr(value or "")[1].strip().lower()
 
 
+def unfold_header(value: str | None) -> str:
+    """Заголовок, свёрнутый на несколько строк, в одну строку.
+
+    Перенос строки в значении не даёт собрать заголовок нового письма.
+    """
+    return re.sub(r"\s*[\r\n]+\s*", " ", value or "").strip()
+
+
 def reply_subject(original: str) -> str:
     """Тема ответа: добавляет Re:, если его ещё нет."""
-    subject = (original or "").strip()
+    subject = unfold_header(original)
     if not subject:
         return "Re:"
     if re.match(r"(?i)^\s*re\s*:", subject):
@@ -80,6 +88,7 @@ def build_reply(
 
     if in_reply_to:
         message["In-Reply-To"] = in_reply_to
+        references = unfold_header(references)
         chain = f"{references} {in_reply_to}".strip() if references else in_reply_to
         message["References"] = chain
 
